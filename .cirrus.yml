@@ -1,5 +1,7 @@
 container:
   image: ubuntu:latest
+  cpu: 4
+  memory: 12G
 task:
   install_script:
     - apt-get update && apt-get install -y python curl wget git
