@@ -1,9 +1,9 @@
 container:
   image: ubuntu:latest
-  cpu: 4
+  cpu: 8
   memory: 12G
 task:
   install_script:
-    - apt-get update && apt-get install -y python curl wget git
+    - apt-get update && apt-get install -y curl git python bc tar make wget gcc clang libssl-dev zip
   script: |
     curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python -
