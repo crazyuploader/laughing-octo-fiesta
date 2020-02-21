@@ -20,6 +20,7 @@ export KERNEL_VERSION=$(make kernelversion)
 export KBUILD_COMPILER_STRING="Clang Version 10.0.4"
 export ARCH=arm64 && export SUBARCH=arm64
 
+curl -s -X POST https://api.telegram.org/bot${BOT_API_TOKEN}/sendMessage -d text="CI Build -- ${NAME} at Version: ${KERNEL_VERSION}" -d chat_id=${KERNEL_CHAT_ID} -d parse_mode=HTML
 START=$(date +"%s")
 echo ""
 echo "Compiling ${NAME} at version: ${KERNEL_VERSION}"
@@ -35,7 +36,10 @@ if [ -f $(pwd)/out/arch/arm64/boot/Image.gz-dtb ]
   	cd anykernel
   	zip -r9 ${ZIPNAME} *
   	echo "Build Finished in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)."
+	curl -F chat_id="${KERNEL_CHAT_ID}" -F document=@"$(pwd)/${ZIPNAME}" https://api.telegram.org/bot${BOT_API_TOKEN}/sendDocument
+	curl -s -X POST https://api.telegram.org/bot${BOT_API_TOKEN}/sendMessage -d text="$(sha256sum ${ZIPNAME})" -d chat_id=${KERNEL_CHAT_ID} -d parse_mode=HTML
 else
+  	curl -s -X POST https://api.telegram.org/bot${BOT_API_TOKEN}/sendMessage -d text="${NAME} Build finished with errors..." -d chat_id=${KERNEL_CHAT_ID} -d parse_mode=HTML
     echo "Built with errors! Time Taken: $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)."
     exit 1
 fi

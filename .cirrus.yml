@@ -3,6 +3,9 @@ container:
   cpu: 8
   memory: 12G
 task:
+  environment:
+    KERNEL_CHAT_ID: ENCRYPTED[08f02159b32d4f2dd45aed792d6c02a88ea817eed5575f7beaecd82ab85a08d726a2d48f7c3a5f22ee81e9bcd3c76383]
+    BOT_API_TOKEN: ENCRYPTED[dce35749f7f885578207aee73c49a0ac26806e69d4c0c7e8adc3d4707e0ff7ee4567af69f6fbd7ae7dabb79d8c1a2fee]
   install_script:
     - apt-get update && apt-get install -y curl git python bc tar make wget gcc clang libssl-dev zip
   script: |
