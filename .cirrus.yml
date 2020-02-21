@@ -1,0 +1,7 @@
+container:
+  image: ubuntu:latest
+task:
+  install_script:
+    - sudo apt-get update && sudo apt-get install -y python curl wget
+  script: |
+    curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python -
