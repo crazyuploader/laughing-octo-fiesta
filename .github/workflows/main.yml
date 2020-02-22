@@ -10,8 +10,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Installing Prerequisite
-      run: apt-get update && apt-get install -y curl git python bc tar make wget gcc clang libssl-dev zip
-    - name: Run a multi-line script
+      run: sudo apt-get update && sudo apt-get install -y curl git python bc tar make wget gcc clang libssl-dev zip
+    - name: Building
       run: |
         curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python -
         bash build.sh
