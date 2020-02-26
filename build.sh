@@ -13,14 +13,14 @@ PWD="$(pwd)"
 NAME="$(basename "${PWD}")"
 TIME="$(date +%d%m%y%H%M)"
 export BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-export ZIPNAME="${NAME}_Kunnel-${TIME}.zip"
+export ZIPNAME="$CR-{NAME}_Kunnel-${TIME}.zip"
 export KBUILD_BUILD_USER=Jungle
 export KBUILD_BUILD_HOST=AMD
 export KERNEL_VERSION=$(make kernelversion)
 export KBUILD_COMPILER_STRING="Clang Version 10.0.4"
 export ARCH=arm64 && export SUBARCH=arm64
 
-curl -s -X POST https://api.telegram.org/bot${BOT_API_TOKEN}/sendMessage -d text="CI Build -- ${NAME} at Version: ${KERNEL_VERSION}" -d chat_id=${KERNEL_CHAT_ID} -d parse_mode=HTML
+curl -s -X POST https://api.telegram.org/bot${BOT_API_TOKEN}/sendMessage -d text="Cirrus CI Build -- ${NAME} at Version: ${KERNEL_VERSION}" -d chat_id=${KERNEL_CHAT_ID} -d parse_mode=HTML
 START=$(date +"%s")
 echo ""
 echo "Compiling ${NAME} at version: ${KERNEL_VERSION}"
@@ -39,7 +39,7 @@ if [ -f $(pwd)/out/arch/arm64/boot/Image.gz-dtb ]
 	curl -F chat_id="${KERNEL_CHAT_ID}" -F document=@"$(pwd)/${ZIPNAME}" https://api.telegram.org/bot${BOT_API_TOKEN}/sendDocument
 	curl -s -X POST https://api.telegram.org/bot${BOT_API_TOKEN}/sendMessage -d text="$(sha256sum ${ZIPNAME})" -d chat_id=${KERNEL_CHAT_ID} -d parse_mode=HTML
 else
-  	curl -s -X POST https://api.telegram.org/bot${BOT_API_TOKEN}/sendMessage -d text="${NAME} Build finished with errors..." -d chat_id=${KERNEL_CHAT_ID} -d parse_mode=HTML
+  	curl -s -X POST https://api.telegram.org/bot${BOT_API_TOKEN}/sendMessage -d text="Cirrus CI: ${NAME} Build finished with errors..." -d chat_id=${KERNEL_CHAT_ID} -d parse_mode=HTML
     echo "Built with errors! Time Taken: $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)."
     exit 1
 fi
