@@ -1,6 +1,6 @@
 #!/bin/bash
 
-git clone --depth=1 https://github.com/crazyuploader/InsigniuX.git -b q-4.4.214 InsigniuX && cd InsigniuX
+git clone --depth=1 https://github.com/crazyuploader/kernel_xiaomi_whyred.git -b mkp-test Perf && cd Perf
 git clone --depth=1 https://github.com/crazyuploader/AnyKernel3.git anykernel
 git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 gcc
 git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 gcc32
@@ -25,7 +25,7 @@ START=$(date +"%s")
 echo ""
 echo "Compiling ${NAME} at version: ${KERNEL_VERSION}"
 echo ""
-make O=out ARCH=arm64 whyred_defconfig
+make O=out ARCH=arm64 whyred-perf_defconfig
 make -j$(nproc --all) O=out ARCH=arm64 CC="$(pwd)/clang-r377782b/bin/clang" CLANG_TRIPLE="aarch64-linux-gnu-" CROSS_COMPILE="$(pwd)/gcc/bin/aarch64-linux-android-" CROSS_COMPILE_ARM32="$(pwd)/gcc32/bin/arm-linux-androideabi-"
 END=$(date +"%s")
 DIFF=$((END - START))
