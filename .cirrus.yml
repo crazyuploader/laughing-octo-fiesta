@@ -8,4 +8,4 @@ task:
     BOT_API_TOKEN: ENCRYPTED[dce35749f7f885578207aee73c49a0ac26806e69d4c0c7e8adc3d4707e0ff7ee4567af69f6fbd7ae7dabb79d8c1a2fee]
   script: |
     apt-get update && apt-get install -y curl git python bc tar make wget gcc clang libssl-dev zip
-    curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python -
+    bash build.sh
