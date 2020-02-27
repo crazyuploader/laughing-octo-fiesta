@@ -1,6 +1,6 @@
 #!/bin/bash
 
-git clone --depth=1 https://github.com/crazyuploader/kernel_xiaomi_whyred.git -b v4.4.187 Perf && cd Perf
+git clone --depth=1 https://github.com/crazyuploader/kernel_xiaomi_whyred.git -b v4.4.188 Perf && cd Perf
 git clone --depth=1 https://github.com/crazyuploader/AnyKernel3.git anykernel
 git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 gcc
 git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 gcc32
