@@ -1,5 +1,5 @@
 container:
-  image: ubuntu:latest
+  image: crazyuploader/kernel:latest
   cpu: 8
   memory: 12G
 task:
