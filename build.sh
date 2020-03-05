@@ -1,44 +1,102 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-wget -nv https://github.com/crazyuploader/kernel_xiaomi_whyred/archive/mkp.zip && unzip mkp.zip -d ./Perf && cd Perf
-git clone --depth=1 https://github.com/crazyuploader/AnyKernel3.git anykernel
-git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 gcc
-git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 gcc32
-mkdir clang-r377782b && cd clang-r377782b && wget -nv https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/master/clang-r377782b.tar.gz
-tar -xf clang-r377782b.tar.gz
-rm clang-r377782b.tar.gz
-cd ..
+# Created by Jugal Kishore -- 2020
+# Kernel Automated Script
 
+function SET_ENVIRONMENT() {
+    cd "${TOOLCHAIN}" || { echo "Failure!"; exit 1; }
+    cd clang-r377782b || { echo "Failure!"; exit 1; }
+    CLANG_DIR="$(pwd)"
+    CC="${CLANG_DIR}/bin/clang"
+    CLANG_VERSION="$(./bin/clang --version | grep 'clang version' | cut -c 37-)"
+    cd ..
+    git clone --depth=1 https://github.com/crazyuploader/AnyKernel3.git anykernel
+}
+
+if [[ -z ${TOOLCHAIN} ]]; then
+    echo "Don't know where to get compilers from"
+    exit 1
+fi
+
+if [[ -z "${KERNEL_REPO_URL}" ]]; then
+    echo "'KERNEL_REPO_URL' variable not found, please set it first."
+    exit 1
+fi
+
+if [[ -z "${DEF_CONFIG}" ]]; then
+    echo "'DEF_CONFIG' variable not found, please set it first."
+    exit 1
+fi
+
+if [[ -z "${KERNEL_NAME}" ]]; then
+    echo "'KERNEL_NAME' variable not found, using default 'Kernel'"
+    KERNEL_NAME="Kernel"
+fi
+
+SET_ENVIRONMENT
+
+echo ""
+git clone --depth=1 "${KERNEL_REPO_URL}" "${KERNEL_NAME}"
+cd "${KERNEL_NAME}" || exit
+
+# Variables
 PWD="$(pwd)"
 NAME="$(basename "${PWD}")"
 TIME="$(date +%d%m%y%H%M)"
-export KERNEL_VERSION=$(make kernelversion)
-export BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-export ZIPNAME="CR-${NAME}-${KERNEL_VERSION}_Kunnel.zip"
-export KBUILD_BUILD_USER=Jungle
-export KBUILD_BUILD_HOST=AMD
-export KBUILD_COMPILER_STRING="Clang Version 10.0.4"
-export ARCH=arm64 && export SUBARCH=arm64
+KERNEL_VERSION="$(make kernelversion)"
 
-curl -s -X POST https://api.telegram.org/bot${BOT_API_TOKEN}/sendMessage -d text="Cirrus CI Build -- ${NAME} at Version: ${KERNEL_VERSION}" -d chat_id=${KERNEL_CHAT_ID} -d parse_mode=HTML
-START=$(date +"%s")
-echo ""
-echo "Compiling ${NAME} at version: ${KERNEL_VERSION}"
-echo ""
-make O=out ARCH=arm64 whyred-perf_defconfig
-make -j$(nproc --all) O=out ARCH=arm64 CC="$(pwd)/clang-r377782b/bin/clang" CLANG_TRIPLE="aarch64-linux-gnu-" CROSS_COMPILE="$(pwd)/gcc/bin/aarch64-linux-android-" CROSS_COMPILE_ARM32="$(pwd)/gcc32/bin/arm-linux-androideabi-"
-END=$(date +"%s")
-DIFF=$((END - START))
+# Exporting Few Stuff
+export ZIPNAME="${NAME}-${TIME}.zip"
+export KERNEL_VERSION="${KERNEL_VERSION}"
+export ANYKERNEL_DIR="${TOOLCHAIN}/anykernel"
+export GCC_DIR="${TOOLCHAIN}/gcc/bin/aarch64-linux-android-"
+export GCC32_DIR="${TOOLCHAIN}/gcc32/bin/arm-linux-androideabi-"
+export KBUILD_BUILD_USER="crazyuploader"
+export KBUILD_BUILD_HOST="github.com"
+export CC="${CC}"
+export KBUILD_COMPILER_STRING="${CLANG_VERSION}"
+export ARCH="arm64"
+export SUBARCH="arm64"
 
-if [ -f $(pwd)/out/arch/arm64/boot/Image.gz-dtb ]
+# Telegram Message
+echo ""
+curl -s -X POST https://api.telegram.org/bot"${BOT_API_TOKEN}"/sendMessage \
+        -d text="CI Build -- ${NAME} at Version: ${KERNEL_VERSION}"         \
+        -d chat_id="${KERNEL_CHAT_ID}"                                       \
+        -d parse_mode=HTML
+START="$(date +"%s")"
+echo ""
+echo "Compiling ${NAME} at version: ${KERNEL_VERSION} with Clang Version: ${CLANG_VERSION}"
+
+# Compilation
+echo ""
+make O=out ARCH=arm64 "${DEF_CONFIG}"
+make -j"$(nproc --all)"                                                     \
+        O=out ARCH=arm64                                                     \
+        CC="${CC}" CLANG_TRIPLE="aarch64-linux-gnu-"                          \
+        CROSS_COMPILE="${GCC_DIR}"                                             \
+        CROSS_COMPILE_ARM32="${GCC32_DIR}"
+
+# Time Difference
+END="$(date +"%s")"
+DIFF="$((END - START))"
+
+# Zipping
+echo ""
+if [ -f "$(pwd)/out/arch/arm64/boot/Image.gz-dtb" ]
 	then
-  	cp $(pwd)/out/arch/arm64/boot/Image.gz-dtb $(pwd)/anykernel
-  	cd anykernel
-  	zip -r9 ${ZIPNAME} *
+  	cp "$(pwd)/out/arch/arm64/boot/Image.gz-dtb" "${ANYKERNEL_DIR}"
+  	cd "${ANYKERNEL_DIR}" || exit
+  	zip -r9 "${ZIPNAME}" ./*
   	echo "Build Finished in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)."
-	curl -F chat_id="${KERNEL_CHAT_ID}" -F document=@"$(pwd)/${ZIPNAME}" https://api.telegram.org/bot${BOT_API_TOKEN}/sendDocument
+	curl -F chat_id="${KERNEL_CHAT_ID}" \
+         -F document=@"$(pwd)/${ZIPNAME}" \
+         https://api.telegram.org/bot"${BOT_API_TOKEN}"/sendDocument
 else
-  	curl -s -X POST https://api.telegram.org/bot${BOT_API_TOKEN}/sendMessage -d text="Cirrus CI: ${NAME} Build finished with errors... ${KERNEL_VERSION}" -d chat_id=${KERNEL_CHAT_ID} -d parse_mode=HTML
+  	curl -s -X POST https://api.telegram.org/bot"${BOT_API_TOKEN}"/sendMessage \
+            -d text="${NAME} Build finished with errors..."                     \
+            -d chat_id="${KERNEL_CHAT_ID}"                                       \
+            -d parse_mode=HTML
     echo "Built with errors! Time Taken: $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)."
     exit 1
 fi
