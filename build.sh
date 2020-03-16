@@ -5,7 +5,7 @@
 
 function SET_ENVIRONMENT() {
     cd "${TOOLCHAIN}" || { echo "Failure!"; exit 1; }
-    cd clang-r377782b || { echo "Failure!"; exit 1; }
+    cd clang || { echo "Failure!"; exit 1; }
     CLANG_DIR="$(pwd)"
     CC="${CLANG_DIR}/bin/clang"
     CLANG_VERSION="$(./bin/clang --version | grep 'clang version' | cut -c 37-)"
@@ -22,22 +22,16 @@ if [[ -z "${KERNEL_REPO_URL}" ]]; then
     echo "'KERNEL_REPO_URL' variable not found, please set it first."
     exit 1
 fi
-
 if [[ -z "${DEF_CONFIG}" ]]; then
     echo "'DEF_CONFIG' variable not found, please set it first."
     exit 1
 fi
 
-if [[ -z "${KERNEL_NAME}" ]]; then
-    echo "'KERNEL_NAME' variable not found, using default 'Kernel'"
-    KERNEL_NAME="Kernel"
-fi
-
 SET_ENVIRONMENT
 
 echo ""
-git clone --depth=1 "${KERNEL_REPO_URL}" "${KERNEL_NAME}"
-cd "${KERNEL_NAME}" || exit
+git clone --depth=1 "${KERNEL_REPO_URL}" Kernel
+cd Kernel || exit
 
 # Variables
 PWD="$(pwd)"
@@ -46,7 +40,7 @@ TIME="$(date +%d%m%y%H%M)"
 KERNEL_VERSION="$(make kernelversion)"
 
 # Exporting Few Stuff
-export ZIPNAME="${NAME}-${TIME}.zip"
+export ZIPNAME="${NAME}_Kernel-${TIME}.zip"
 export KERNEL_VERSION="${KERNEL_VERSION}"
 export ANYKERNEL_DIR="${TOOLCHAIN}/anykernel"
 export GCC_DIR="${TOOLCHAIN}/gcc/bin/aarch64-linux-android-"
