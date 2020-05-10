@@ -1,5 +1,5 @@
 container:
-  image: crazyuploader/kernel:latest
+  image: crazyuploader/kernel_build:latest
   cpu: 8
   memory: 12G
 task:
