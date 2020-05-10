@@ -13,6 +13,8 @@ function SET_ENVIRONMENT() {
     git clone --depth=1 https://github.com/crazyuploader/AnyKernel3.git anykernel
 }
 
+# Variables Check
+echo ""
 if [[ -z ${TOOLCHAIN} ]]; then
     echo "Don't know where to get compilers from"
     exit 1
@@ -22,16 +24,23 @@ if [[ -z "${KERNEL_REPO_URL}" ]]; then
     echo "'KERNEL_REPO_URL' variable not found, please set it first."
     exit 1
 fi
+
 if [[ -z "${DEF_CONFIG}" ]]; then
     echo "'DEF_CONFIG' variable not found, please set it first."
     exit 1
 fi
 
+if [[ -z "${KERNEL_NAME}" ]]; then
+    echo "'KERNEL_NAME' variable not found, using default 'Kernel'"
+    KERNEL_NAME="Daath"
+fi
+
+# Set Up Environment
 SET_ENVIRONMENT
 
 echo ""
-git clone --depth=1 "${KERNEL_REPO_URL}" Kernel
-cd Kernel || exit
+git clone --depth=1 "${KERNEL_REPO_URL}" "${KERNEL_NAME}"
+cd "${KERNEL_NAME}" || exit
 
 # Variables
 PWD="$(pwd)"
@@ -40,7 +49,7 @@ TIME="$(date +%d%m%y%H%M)"
 KERNEL_VERSION="$(make kernelversion)"
 
 # Exporting Few Stuff
-export ZIPNAME="${NAME}_Kernel-${TIME}.zip"
+export ZIPNAME="${KERNEL_NAME}-${TIME}.zip"
 export KERNEL_VERSION="${KERNEL_VERSION}"
 export ANYKERNEL_DIR="${TOOLCHAIN}/anykernel"
 export GCC_DIR="${TOOLCHAIN}/gcc/bin/aarch64-linux-android-"
@@ -67,8 +76,9 @@ echo ""
 make O=out ARCH=arm64 "${DEF_CONFIG}"
 make -j"$(nproc --all)"                                                     \
         O=out ARCH=arm64                                                     \
-        CC="${CC}" CLANG_TRIPLE="aarch64-linux-gnu-"                          \
-        CROSS_COMPILE="${GCC_DIR}"                                             \
+        CC="${CC}"                                                            \
+        CLANG_TRIPLE="aarch64-linux-gnu-"                                      \
+        CROSS_COMPILE="${GCC_DIR}"                                              \
         CROSS_COMPILE_ARM32="${GCC32_DIR}"
 
 # Time Difference
@@ -77,8 +87,7 @@ DIFF="$((END - START))"
 
 # Zipping
 echo ""
-if [ -f "$(pwd)/out/arch/arm64/boot/Image.gz-dtb" ]
-	then
+if [[ -f "$(pwd)/out/arch/arm64/boot/Image.gz-dtb" ]]; then
   	cp "$(pwd)/out/arch/arm64/boot/Image.gz-dtb" "${ANYKERNEL_DIR}"
   	cd "${ANYKERNEL_DIR}" || exit
   	zip -r9 "${ZIPNAME}" ./*
